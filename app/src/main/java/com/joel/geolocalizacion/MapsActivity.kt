@@ -5,6 +5,8 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -19,6 +21,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+
+    companion object {
+        const val REQUEST_CODE_LOCATION = 0
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,4 +69,75 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         )
     }
 
+    /**
+     * Método que comprueba que el permiso este activado
+     */
+    private fun isLocationPermissionGranted() = ContextCompat.checkSelfPermission(
+        this,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
+    //SupressLint es una interfaz que indica que se deben ignoar las advertencias especificadas
+
+    /**
+     * Método para activar la localización propia
+     */
+    @SuppressLint("MissingPermission")
+    private fun enableLocation() {
+        //Si el mapa no está inicializado, no inicies este metodo
+        if (!::mMap.isInitialized) return
+        if (isLocationPermissionGranted()) {
+            //Se han aceptado los permisos, permitimos la localización
+            mMap.isMyLocationEnabled = true
+        } else {
+            //No se han aceptado los permisos, los pedimos a traves de un request
+            requestLocationPermission()
+        }
+    }
+
+    /**
+     * Método para pedir al usuario que active los permisos
+     */
+    private fun requestLocationPermission() {
+        //Comprobamos si el usuario ha rechazado los permisos requeridos
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        ) {
+            Toast.makeText(this, "Tiene que aceptar los permisos para acceder a su localización", Toast.LENGTH_SHORT).show()
+
+        } else {
+            //Comprobamos a traves del REQUEST_CODE_LOCATION si el usuario ha aceptado los permisos
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_CODE_LOCATION
+            )
+        }
+    }
+
+    /**
+     * Método que captura la respuesta del usuario
+     */
+    @SuppressLint("MissingSuperCall", "MissingPermission")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        //Comparamos el RequestCode con el REQUEST_CODE_LOCATION definido
+        when (requestCode) {
+            //Si los permisos estan aceptados, deja acceder a la localización propia
+            REQUEST_CODE_LOCATION -> if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mMap.isMyLocationEnabled = true
+            } else {
+                Toast.makeText(
+                    this,
+                    "Para activar la localización ve a ajustes y acepta los permisos",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 }
