@@ -3,6 +3,7 @@ package com.joel.geolocalizacion
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
@@ -17,7 +18,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.joel.geolocalizacion.databinding.ActivityMapsBinding
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
@@ -54,6 +55,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isZoomControlsEnabled = true
         //Añade una marca en vigo
         myCityMarker()
+
+        mMap.setOnMyLocationButtonClickListener(this)
+        mMap.setOnMyLocationClickListener(this)
+        enableLocation()
     }
 
     private fun myCityMarker() {
@@ -139,5 +144,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 ).show()
             }
         }
+    }
+
+    /**
+     * Método para comprobar si los permisos siguen activos cuando el usuario se va de la aplicación
+     */
+    override fun onResumeFragments() {
+        super.onResumeFragments()
+        if (!::mMap.isInitialized) return
+        if (!isLocationPermissionGranted()) {
+            !mMap.isMyLocationEnabled
+            Toast.makeText(this, "Tiene que aceptar los permisos para acceder a su localización", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Método para ubicar al usuario cuando pulse el botón OnMyLocation
+     */
+    override fun onMyLocationButtonClick(): Boolean {
+        Toast.makeText(this, "Tu localización", Toast.LENGTH_SHORT).show()
+        return false
+    }
+
+    /**
+     * Método que muestra la latitud y longitud de nuestra ubicación
+     */
+    override fun onMyLocationClick(p0: Location) {
+        Toast.makeText(this, "Estás en ${p0.latitude},${p0.longitude} ", Toast.LENGTH_SHORT).show()
     }
 }
