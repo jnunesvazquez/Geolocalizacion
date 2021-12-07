@@ -1,7 +1,11 @@
 package com.joel.geolocalizacion
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.core.content.ContextCompat
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -40,9 +44,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        //Activo el boton para ampliar el mapa
+        mMap.uiSettings.isZoomControlsEnabled = true
+        //Añade una marca en vigo
+        myCityMarker()
     }
+
+    private fun myCityMarker() {
+        //Definimos la posición de la marca
+        val myCity = LatLng(42.23282, -8.72264)
+        //Añadimos una marca con una posición y un nombre
+        mMap.addMarker(MarkerOptions().position(myCity).title("Vigo"))
+        //Movemos la camara a la marca con una animacion
+        mMap.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(myCity, 18f),
+            4000,
+            null
+        )
+    }
+
 }
